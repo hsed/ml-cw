@@ -66,7 +66,7 @@ for train, test in kfold.split(X_all, y_all):
     #print("Final score:", score)
     # evaluate the model
     scores = model.evaluate(X_all[test], y_all[test], verbose=0)
-    print("%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+    print("CV_Iteration: %d, %s: %.2f%%" % (len(cvscores)+1,model.metrics_names[1], scores[1]*100))
     cvscores.append(scores[1] * 100)
 
 print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
