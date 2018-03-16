@@ -55,7 +55,7 @@ for train, test in kfold.split(X_all, y_all):
 
     #print(h_test)
     
-
+    # this is not good given the distribution!!!
     #score = model.evaluate(X_test, y_test, batch_size=128)
     #print("Final score:", score)
     # evaluate the model

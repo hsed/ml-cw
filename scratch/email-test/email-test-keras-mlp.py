@@ -30,6 +30,13 @@ train_rec = int(0.7*total_records)  # approx 70%
 X_all = np_data[:, :-1]
 y_all = np_data[:, -1].astype(int)
 
+for d_col in X_all.T:
+    mean = np.mean(d_col)
+    std = np.std(d_col)
+
+    for xi in d_col.T:
+        xi = (xi - mean)/std
+
 # X_train = np_data[:train_rec,:-1]
 # y_train = np_data[:train_rec,-1].astype(int)
 
@@ -48,19 +55,19 @@ y_all = np_data[:, -1].astype(int)
 #nb_classes = y_train.shape[1]
 # define 10-fold cross validation test harness
 kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
+# create model
+model = Sequential()
+model.add(Dense(32, activation='selu', input_dim=57, kernel_initializer='lecun_normal'))
+model.add(Dense(1, activation='sigmoid'))
+model.compile(optimizer='rmsprop',
+            loss='binary_crossentropy',
+            metrics=['accuracy'])
 
 cvscores = []
 for train, test in kfold.split(X_all, y_all):
-    # create model
-    model = Sequential()
-    model.add(Dense(32, activation='relu', input_dim=57))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer='rmsprop',
-                loss='binary_crossentropy',
-                metrics=['accuracy'])
 
 
-    model.fit(X_all[train], y_all[train], epochs=100, batch_size=256) # model.fit(X[train], Y[train], epochs=150, batch_size=10, verbose=0)
+    model.fit(X_all[train], y_all[train], epochs=150, batch_size=256) # model.fit(X[train], Y[train], epochs=150, batch_size=10, verbose=0)
 
     #score = model.evaluate(X_test, y_test, batch_size=128)
     #print("Final score:", score)
