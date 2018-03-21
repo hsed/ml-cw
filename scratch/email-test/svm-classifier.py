@@ -4,38 +4,43 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn import svm
 from sklearn.metrics import accuracy_score
 from dataImporter import dataImporter as dI
+from sklearn.model_selection import cross_val_score
+from sklearn.feature_selection import RFECV
+import matplotlib.pyplot as plt
 
-# fix random seed for reproducibility
-seed = 3
+def main():
+    # fix random seed for reproducibility
+    seed = 3
 
-# unnormalised -> 90%
-# normalised -> 93.5%
+    # unnormalised -> 90%
+    # normalised -> 93.5%
 
-X_all, y_all = dI(normalise=True).getAllData()
+    X_all, y_all = dI().getAllData()
 
-kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
+    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)   #this seed gives better results!! (91% without seed)
 
-cvscores = []
-for train, test in kfold.split(X_all, y_all):
-    # create model
     clf = svm.SVC(gamma=0.001, C=100.)
-    clf.fit(X_all[train], y_all[train])
-    h_test = clf.predict(X_all[test])
+    clf_linear_kernel = svm.SVC(kernel='linear')
 
-    #print(h_test)
-    
+    # scores = cross_val_score(clf, X_all, y_all,cv=kfold)
+    # print("Mean Accuracy: %.2f%% (+/- %.2f%%)\n\n" % (scores.mean()*100, scores.std()*100))
 
-    #score = model.evaluate(X_test, y_test, batch_size=128)
-    #print("Final score:", score)
-    # evaluate the model
-    score = accuracy_score(y_all[test], h_test)
-    print("CV_Iteration: %d, Accuracy: %.2f%%" % (len(cvscores)+1, score*100))
-    cvscores.append(score * 100)
+    # scores = cross_val_score(clf_linear_kernel, X_all, y_all,cv=kfold)
+    # print("Mean Accuracy for linear kernel: %.2f%% (+/- %.2f%%)\n\n" % (scores.mean()*100, scores.std()*100))
 
-print("%.2f%% (+/- %.2f%%)" % (np.mean(cvscores), np.std(cvscores)))
+    rfecv = RFECV(estimator=clf_linear_kernel, step=1, cv=kfold,
+                scoring='accuracy', n_jobs=3, verbose=1,)
+    rfecv.fit(X_all, y_all)
 
+    print("Optimal number of features : %d" % rfecv.n_features_)
 
-
-
+    # Plot number of features VS. cross-validation scores
+    # plt.figure()
+    # plt.xlabel("Number of features selected")
+    # plt.ylabel("Cross validation score (nb of correct classifications)")
+    # plt.plot(range(1, len(rfecv.grid_scores_) + 1), rfecv.grid_scores_)
+    # plt.show()
 
 # accuracy from 
+
+if __name__ == '__main__': main()

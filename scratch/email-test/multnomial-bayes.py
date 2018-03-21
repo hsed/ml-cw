@@ -32,6 +32,7 @@ train_rec = int(0.7*total_records)  # approx 70%
 
 X_all = np_data[:, :-1]
 y_all = np_data[:, -1].astype(int)
+X_all = X_all[:, :-3] # drop last three cols as we only need probabilities
 
 # X_train = np_data[:train_rec,:-1]
 # y_train = np_data[:train_rec,-1].astype(int)

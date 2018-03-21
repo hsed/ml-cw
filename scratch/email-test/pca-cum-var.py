@@ -31,3 +31,27 @@ scores3 = cross_val_score(clf2, X_train, y_train,cv=10)
 print("Mean ROC_AUC Multi: %.2f%% (+/- %.2f%%)" % (scores.mean()*100, scores.std()*100))
 print("Mean ROC_AUC Bernu: %.2f%% (+/- %.2f%%)" % (scores2.mean()*100, scores2.std()*100))
 print("Mean ROC_AUC Gauss: %.2f%% (+/- %.2f%%)" % (scores3.mean()*100, scores3.std()*100))
+
+
+# from sklearn.metrics import roc_curve
+# X_test, y_test = data.getTestData()
+# probas_ = clf.fit(X_train, y_train).predict_proba(X_test)
+# probas_2 = clf2.fit(X_train, y_train).predict_proba(X_test)
+# fpr, tpr, thresholds = roc_curve(y_test, probas_[:, 1])
+# fpr2, tpr2, thresholds = roc_curve(y_test, probas_2[:, 1])
+#plt.plot(fpr, tpr)
+#plt.plot(fpr2, tpr2)
+
+from sklearn.decomposition import PCA
+from sklearn.pipeline import Pipeline
+pca_p = Pipeline([ ('pca', PCA())])
+#show the importance of standardisation using pca
+#without standardisation 3 feature vector accounts for 99% variance
+#with std, all feature vectors are equivally imp due to the smooth curve
+#hence generally dim reduction will not be attempted due to equal affect on the classification from each feature.
+#pca_p = Pipeline([('pca', PCA())])
+
+pca_p.fit(X_train)
+plt.plot( pca_p.named_steps['pca'].explained_variance_ratio_.cumsum(), '--o')
+
+plt.show()

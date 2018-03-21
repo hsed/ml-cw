@@ -26,7 +26,7 @@ def main():
     #print("mean cv accuracy: ", scores.mean()*100, "%")
     # best result using adaboost classifier!! mean score is 93% accuracy!
 
-    print("\n\n***trying out grid search!!***\n\n")
+    #print("\n\n***trying out grid search!!***\n\n")
 
     # Gradient boosting tunning # use with caution needs high cpu!!!
 
@@ -47,6 +47,8 @@ def main():
 
     # # Best score
     # print(gsGBC.best_score_)
+
+    # https://www.kaggle.com/yassineghouzam/titanic-top-4-with-ensemble-modeling
 
 
 if __name__ == '__main__': main()
