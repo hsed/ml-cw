@@ -91,12 +91,12 @@ title = "Learning Curves (Naive Bayes)"
 cv = ShuffleSplit(n_splits=100, test_size=0.2, random_state=0)
 
 estimator = GaussianNB()
-plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=4)
+plot_learning_curve(estimator, title, X, y, ylim=(0.7, 1.01), cv=cv, n_jobs=1)
 
 title = "Learning Curves (SVM, RBF kernel, $\gamma=0.001$)"
 # SVC is more expensive so we do a lower number of CV iterations:
 cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
 estimator = SVC(gamma=0.001)
-plot_learning_curve(estimator, title, X, y, (0.7, 1.01), cv=cv, n_jobs=4)
+plot_learning_curve(estimator, title, X, y, (0.7, 1.01), cv=cv, n_jobs=1)
 
 plt.show()

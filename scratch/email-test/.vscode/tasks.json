@@ -7,7 +7,7 @@
             "label": "run",
             "command": "conda activate ml && python",
             "args": [
-                "${file}"
+                "${file} -w"
             ],
             "options": {
                 "cwd": "${fileDirname}"

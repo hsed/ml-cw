@@ -29,9 +29,9 @@ tuning_parameters = [{'svc__kernel': ['rbf'], 'svc__gamma': [1e-3, 1e-4],
                     {'svc__kernel': ['linear'], 'svc__C': [1, 10, 100]}]
 
 #print(model_base.named_steps)
-if __name__ == '__main__':
+def main():
     # defined tuned model as an extension of base model and using grid search of tuning_parameters
-    model_tuner = joblib.load('grid_search_svm_full.pkl') # GridSearchCV(model_base, tuning_parameters, cv=ten_fold_cv, n_jobs=-1, verbose=2)
+    model_tuner = joblib.load('grid_search_svm_full.pkl') #GridSearchCV(model_base, tuning_parameters, cv=ten_fold_cv, n_jobs=-1, verbose=2)# GridSearchCV(model_base, tuning_parameters, cv=ten_fold_cv, n_jobs=-1, verbose=2)
 
     #model_tuner.fit(X_train, y_train)
 
@@ -113,6 +113,6 @@ if __name__ == '__main__':
     plt.show()
 
 
-# main()
+if __name__ == '__main__': main()
 
 # accuracy from 
