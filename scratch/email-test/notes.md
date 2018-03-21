@@ -22,4 +22,7 @@
     - [ ] add l1 norm, try different params
     - [ ] add l2 norm, try different params,
     - [ ] what is best reg for sparse dataset??
-    - [ ] try with or without standardisation
+    - [ ] try feature selection
+    - [ ] try dim reduction
+    - [ ] higher dim transform sparse or something like non lineaer transform.
+    - [ ] all of this to be done in one training session along with standardisation
