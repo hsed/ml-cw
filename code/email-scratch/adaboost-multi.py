@@ -1,6 +1,6 @@
 from sklearn.model_selection import cross_val_score
 from sklearn.ensemble import AdaBoostClassifier
-from sklearn.ensemble import GradientBoostingClassifier
+from sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier
 import pandas as pd
 from numpy.random import RandomState
 from dataImporter import dataImporter as dI
@@ -14,6 +14,7 @@ from sklearn.model_selection import GridSearchCV, StratifiedKFold, learning_curv
 #gradient boosting
 # 94.04% -- normalised and unnormalised
 
+#randomforrest is 94%
 
 # on  aside note its 53% for wine
 def main():
