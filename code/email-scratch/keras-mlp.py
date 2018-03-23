@@ -4,7 +4,7 @@ from keras.utils import to_categorical
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import StratifiedKFold
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, QuantileTransformer
 
 # fix random seed for reproducibility
 seed = 3
@@ -30,7 +30,7 @@ train_rec = int(0.7*total_records)  # approx 70%
 
 #X_all = np_data[:, :-1]
 #y_all = np_data[:, -1].astype(int)
-scaler = StandardScaler()
+scaler = QuantileTransformer()
 
 X_train = np_data[:train_rec,:-1]
 y_train = np_data[:train_rec,-1].astype(int)
