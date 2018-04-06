@@ -49,3 +49,4 @@ class plotGridSearchResult:
         plt.legend(loc="best")
         plt.grid('off')
         plt.show()
+

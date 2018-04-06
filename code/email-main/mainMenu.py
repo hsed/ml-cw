@@ -16,7 +16,7 @@
 from multiprocessing import Process
 from perceptronModels import simple_perceptron, tuned_perceptron, fine_tuned_perceptron
 from logisticModels import simple_logisticreg, tuned_logisticreg_l1_l2, tuned_logisticreg_multi_param
-from advanceModels import simple_gradboost,tuned_gradboost, nn_custom
+from advanceModels import simple_gradboost,tuned_gradboost, nn_custom, nn_simple
 from functools import partial
 import sys
 
@@ -36,8 +36,9 @@ def menu(loadWeight=False, defaultVal=None, runAll=False):
         6: tuned_logisticreg_multi_param,
         7: simple_gradboost,
         8: tuned_gradboost,
-        9: nn_custom,
-        10: partial(menu,defaultVal=1,runAll=True),
+        9: nn_simple,
+        10: nn_custom,
+        11: partial(menu,defaultVal=1,runAll=True),
     }
 
 
@@ -60,8 +61,9 @@ def menu(loadWeight=False, defaultVal=None, runAll=False):
               "\n6.  Tuned logistic regression multiple hyperParam",
               "\n7.  Simple gradient boost ensemble with default parameters",
               "\n8.  Gradient boost with hyper param training",
-              "\n9.  Single hidden layer neural network",
-              "\n10. Run all tests using saved weights")
+              "\n9.  Single hidden layer basic neural network",
+              "\n10. Single hidden layer improved neural network",
+              "\n11. Run all tests using saved weights")
     while is_valid_input != True:
         try:
             option = int(input()) if defaultVal is None else defaultVal #get from input or arg

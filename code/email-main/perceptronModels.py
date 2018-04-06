@@ -21,10 +21,28 @@ from plotFunctions import plotGridSearchResult
 class dataSet:
     data = dI.dataImporter(shuffle=True, stratify=True)
     X_train, y_train = data.getTrainData()
+    X_test, y_test = data.getTestData()
     ten_fold_cv = StratifiedKFold(n_splits=10, shuffle=True, random_state=data.RANDOM_STATE)
     random_state = data.RANDOM_STATE
 
-
+def report_summary(model):
+    print()
+    print("Grid scores on development set:")
+    print()
+    means = model.cv_results_['mean_test_score']
+    stds = model.cv_results_['std_test_score']
+    for mean, std, params in zip(means, stds, model.cv_results_['params']):
+        print("%0.3f (+/-%0.03f) for %r"
+                % (mean, std * 2, params)) 
+    print()
+    print("Best parameters set found on development set:")
+    print()
+    print(model.best_params_)
+    print()
+    print()
+    print("\n*** Mean CV Accuracy: %.2f%% (+/- %.2f%%) ***\n" % (means[model.best_index_]*100, stds[model.best_index_]*100))#(model.best_score_*100))
+    print("*** Test-set accuracy: %0.2f%% ***" % (accuracy_score(dataSet.y_test, model.predict(dataSet.X_test))*100))
+    print()
 
 def simple_perceptron(ignore):
     clf = make_pipeline(preprocessing.StandardScaler(),Perceptron(max_iter=5))
@@ -125,15 +143,18 @@ def fine_tuned_perceptron(loadWeights=False):
     
     results = model_tuner.cv_results_
     df = pd.DataFrame(results)
-    print(df)
+    #print(df)
+    report_summary(model_tuner)
 
     # Get the regular numpy array from the MaskedArray
     X_axis = np.array(results['param_perceptron__max_iter'].data, dtype=float)
     #ax.set_xlim(np.min(X_axis), np.max(X_axis)+10**2)
-    print(X_axis)
+    #print(X_axis)
 
     plotGridSearchResult("Plot of narrower grid-search for hyperparameter 'Epoch'", "Epochs", "ACC", X_axis, results,isLogxScale=True)
 
     if not loadWeights: joblib.dump(model_tuner, 'weights/' + sys._getframe().f_code.co_name + '.pkl', compress = 1)
+
+    
     
     return 0

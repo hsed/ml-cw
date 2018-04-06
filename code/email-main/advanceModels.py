@@ -12,6 +12,8 @@ from plotFunctions import plotGridSearchResult
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Dropout
 from keras.utils import to_categorical
+from keras.models import load_model
+from keras.utils import plot_model
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
@@ -42,9 +44,10 @@ def report_summary(model):
     print(model.best_params_)
     print()
     print()
-    print("\n*** Best CV Accuracy: %0.2f%% ***\n" % model.best_score_)
+    print("\n*** Mean CV Accuracy: %.2f%% (+/- %.2f%%) ***\n" % (means[model.best_index_]*100, stds[model.best_index_]*100))#(model.best_score_*100))
     print("*** Test-set accuracy: %0.2f%% ***" % (accuracy_score(dataSet.y_test, model.predict(dataSet.X_test))*100))
     print()
+    
     
 
 
@@ -63,17 +66,6 @@ def simple_gradboost(ignore):
 
 
 def tuned_gradboost(loadWeights):
-    #Set C to a high value to emulate no regularisation
-    # pp = preprocessing.PolynomialFeatures()
-    # X_Fit = pp.fit_transform(dataSet.X_train)
-    # clf = make_pipeline(preprocessing.StandardScaler(),
-    #         LogisticRegressionCV(penalty='l1',Cs=10, random_state=dataSet.random_state,cv=2, solver='liblinear', n_jobs=-1))
-    # clf.fit(X_Fit, dataSet.y_train)
-    # scores = clf.score(pp.fit_transform(dataSet.X_test),dataSet.y_test)
-    # print("ss", scores)
-    # ##print("Mean Accuracy: %.2f%% (+/- %.2f%%)" % (scores.mean()*100, scores.std()*100))
-    # return 0
-
     pipe = Pipeline([
         ('std', preprocessing.QuantileTransformer()),
         ('gbc', GradientBoostingClassifier())  # ExtraTreesClassifier())
@@ -105,21 +97,59 @@ def tuned_gradboost(loadWeights):
     
     
     results = model_tuner.cv_results_
-    #df = pd.DataFrame(results)
-    #print(df)
 
-    # resL1 = dict()
-    # resL2 = dict()
-    # params = ['mean_test_score', 'std_test_score', 'mean_train_score', 'std_train_score']
-    # for param in params:
-    #     resL1[param] = np.array(results[param]).reshape(len(Cs), len(penalty))[:, 0]
-    #     resL2[param] = np.array(results[param]).reshape(len(Cs), len(penalty))[:, 1]
+    return 0
+
+def nn_simple(loadWeights):
+
+
+    # fix random seed for reproducibility, not in use
+    seed = 3
+    np.random.seed(seed)
+
+    X_train = dataSet.X_train
+    y_train = dataSet.y_train
+
+    X_test = dataSet.X_test
+    y_test = dataSet.y_test
+
+
+    isPrevModelLoaded = False
+    #input_dim = X_train.shape[1]
+    #nb_classes = y_train.shape[1]
+    # define 10-fold cross validation test harness
+    kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
+
+    model = None
+    if not loadWeights or not os.path.exists('weights/' + sys._getframe().f_code.co_name + '.h5'):
+        loadWeights = False
+        model = Sequential()
+        model.add(Dense(32, activation='relu', input_dim=57))
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer='rmsprop',
+                    loss='binary_crossentropy',
+                    metrics=['accuracy'])
+    else:
+        model = load_model('weights/' + sys._getframe().f_code.co_name + '.h5')
+        isPrevModelLoaded = True
+
+    cvscores = []
+    for train, test in kfold.split(X_train, y_train):
+
+        model.fit(X_train[train], y_train[train], epochs=150, batch_size=256, verbose=0)
+
+        scores = model.evaluate(X_train[test], y_train[test], verbose=0)
+        print("CV_Iteration: %d, %s: %.2f%%" %
+            (len(cvscores)+1, model.metrics_names[1], scores[1]*100))
+        cvscores.append(scores[1] * 100)
+
     
-    # resL1['rank_test_score'] = results['rank_test_score']
-    # resL2['rank_test_score'] = results['rank_test_score']
+    print("Mean CV Accuracy %.2f%% (+/- %.2f%%)" %
+        (np.mean(cvscores), np.std(cvscores)))
 
-    # plotGridSearchResult("Plot of grid-search for hyperparameter 'C' in L1 Reg", "Epochs", "ACC", Cs, resL1,isLogxScale=True)
-    # plotGridSearchResult("Plot of grid-search for hyperparameter 'C' in L2 Reg", "Epochs", "ACC", Cs, resL2,isLogxScale=True)
+    sc = model.evaluate(X_test, y_test, verbose=0)
+    print("Test-set Accuracy:%s: %.2f%%" % (model.metrics_names[1], sc[1]*100))
+    if not loadWeights: model.save('weights/' + sys._getframe().f_code.co_name + '.h5')
     return 0
 
 
@@ -130,35 +160,16 @@ def nn_custom(loadWeights):
     seed = 3
     np.random.seed(seed)
 
-    data = pd.DataFrame(pd.read_csv('spambase.data', header=None, sep=','))
-
-    # first row is words
-    np_data = data.as_matrix()
-    print("Data Shape: " + str(np_data.shape))
-
-    #np.random.shuffle(np_data) # this will be done by k-fold eval!
-    #features_matx = np_data[1,:]
-    print("Full data, 15 rec: ", np_data[:15, :], "\n\n")
-
-    total_records = np_data.shape[0]
-
-    #classes
-    #labels = data.ix[:,-1].values.astype('int32')
-
-    train_rec = int(0.7*total_records)  # approx 70%
-    #test_rec = total_records - train_rec
-
-    #X_all = np_data[:, :-1]
-    #y_all = np_data[:, -1].astype(int)
     scaler = preprocessing.QuantileTransformer()
 
-    X_train = np_data[:train_rec, :-1]
-    y_train = np_data[:train_rec, -1].astype(int)
+    X_train = dataSet.X_train
+    y_train = dataSet.y_train
     scaler.fit(X_train)
-
-    X_test = np_data[train_rec:, :-1]
-    y_test = np_data[train_rec:, -1].astype(int)
     scaler.fit_transform(X_train)
+
+    X_test = dataSet.X_test
+    y_test = dataSet.y_test
+    scaler.fit_transform(X_test)
     #print("x_train: \n", X_train, "\n\n y_train: ", y_train)
 
     #raise SystemExit
@@ -166,39 +177,53 @@ def nn_custom(loadWeights):
     # convert list of labels to binary class matrix
     #y_train = np_utils.to_categorical(labels)
 
-
+    isPrevModelLoaded = False
     #input_dim = X_train.shape[1]
     #nb_classes = y_train.shape[1]
     # define 10-fold cross validation test harness
     kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
-    # create model
-    model = Sequential()
-    model.add(Dense(32, activation='selu', input_dim=57,
+
+    model = None
+    if not loadWeights or not os.path.exists('weights/' + sys._getframe().f_code.co_name + '.h5'):
+        loadWeights = False
+        model = Sequential()
+        model.add(Dense(32, activation='selu', input_dim=57,
                     kernel_initializer='lecun_normal'))
-    model.add(Dense(1, activation='sigmoid'))
-    model.compile(optimizer='rmsprop',
+        model.add(Dense(1, activation='sigmoid'))
+        model.compile(optimizer='rmsprop',
                 loss='binary_crossentropy',
                 metrics=['accuracy'])
+    else:
+        model = load_model('weights/' + sys._getframe().f_code.co_name + '.h5')
+        isPrevModelLoaded = True
+
 
     cvscores = []
     for train, test in kfold.split(X_train, y_train):
 
         # model.fit(X[train], Y[train], epochs=150, batch_size=10, verbose=0)
-        model.fit(X_train[train], y_train[train], epochs=150, batch_size=256)
+        if not isPrevModelLoaded:
+            model.fit(X_train[train], y_train[train], epochs=150, batch_size=256, verbose=0)
 
-        #score = model.evaluate(X_test, y_test, batch_size=128)
-        #print("Final score:", score)
-        # evaluate the model
+            # summarize history for accuracy
+            # hist[:,i_hist] = history.history['acc']
+            # i_hist +=1
+
         scores = model.evaluate(X_train[test], y_train[test], verbose=0)
         print("CV_Iteration: %d, %s: %.2f%%" %
             (len(cvscores)+1, model.metrics_names[1], scores[1]*100))
         cvscores.append(scores[1] * 100)
 
-    print("Average Accuracy %.2f%% (+/- %.2f%%)" %
+    
+    print("Mean CV Accuracy %.2f%% (+/- %.2f%%)" %
         (np.mean(cvscores), np.std(cvscores)))
 
-
     sc = model.evaluate(X_test, y_test, verbose=0)
-    print("test score:%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
-
+    print("Test-set Accuracy:%s: %.2f%%" % (model.metrics_names[1], sc[1]*100))
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    #plot_model(model, to_file='model.png', show_shapes=True)
+    if not loadWeights: model.save('weights/' + sys._getframe().f_code.co_name + '.h5')
     return 0

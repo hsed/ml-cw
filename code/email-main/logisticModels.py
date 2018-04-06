@@ -24,6 +24,7 @@ from sklearn.preprocessing import PolynomialFeatures
 import os.path
 import tempfile
 
+
 class dataSet:
     data = dI.dataImporter(shuffle=True, stratify=True)
     X_train, y_train = data.getTrainData()
@@ -46,7 +47,7 @@ def report_summary(model):
     print(model.best_params_)
     print()
     print()
-    print("\n*** Best CV Accuracy: %0.2f%% ***\n" % model.best_score_)
+    print("\n*** Mean CV Accuracy: %.2f%% (+/- %.2f%%) ***\n" % (means[model.best_index_]*100, stds[model.best_index_]*100))#(model.best_score_*100))
     print("*** Test-set accuracy: %0.2f%% ***" % (accuracy_score(dataSet.y_test, model.predict(dataSet.X_test))*100))
     print()
     
@@ -171,33 +172,9 @@ def tuned_logisticreg_multi_param(loadWeights):
     else:
         model_tuner = joblib.load('weights/' + sys._getframe().f_code.co_name + '.pkl')
 
-    print()
-    print("Grid scores on development set:")
-    print()
-    means = model_tuner.cv_results_['mean_test_score']
-    stds = model_tuner.cv_results_['std_test_score']
-    for mean, std, params in zip(means, stds, model_tuner.cv_results_['params']):
-        print("%0.3f (+/-%0.03f) for %r"
-                % (mean, std * 2, params))
-    print()
-    print("Best parameters set found on development set:")
-    print()
-    print(model_tuner.best_params_)
-    print("Detailed classification report:")
-    print()
-    print("The model is trained on the full development set.")
-    print("The scores are computed on the full evaluation set.")
-    print()
-    ## do final test pred
-    X_test, y_test = dataSet.data.getTestData()
-    y_true, y_pred = y_test, model_tuner.predict(X_test)
-    print("*** Test-set accuracy: %0.2f%% ***" % (accuracy_score(y_true, y_pred)*100))
-    print()
 
     if not loadWeights: joblib.dump(model_tuner, 'weights/' + sys._getframe().f_code.co_name + '.pkl', compress = 1)
     
-    results = model_tuner.cv_results_
-    df = pd.DataFrame(results)
-    #print(df)
+    report_summary(model_tuner)
 
     return 0
