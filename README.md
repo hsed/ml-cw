@@ -17,4 +17,4 @@ python mainMenu.py
 
 
 ## Report
-To follow
+Please find the PDF report in the doc folder or use the [direct link](https://raw.githubusercontent.com/hsed/ml-cw/master/doc/ee3-23-mlcw-report-hom15.pdf).
